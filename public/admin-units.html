@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de unidades · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="3" />
+            <path d="M9 9h6v6H9z" />
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          </svg>
+        </span>
+        <span class="admin-pill">Admin</span>
+      </a>
+      <div class="nav-actions">
+        <a class="btn btn-outline" href="/admin-dashboard.html">← Volver al panel</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="manage-wrap">
+    <div class="manage-header">
+      <p class="eyebrow">Administración</p>
+      <h1>Unidades del curso</h1>
+      <p>Crea, edita y elimina las unidades generales. Dentro de cada una podrás agregar sus temas, videos y PDFs.</p>
+    </div>
+
+    <div class="manage-grid">
+      <section class="panel panel-sticky">
+        <h2 id="formTitle">Nueva unidad</h2>
+        <p class="panel-sub" id="formSubtitle">Título y descripción de la unidad general.</p>
+
+        <form id="unitForm">
+          <input type="hidden" id="unitId" value="" />
+
+          <div class="field">
+            <label for="title">Título</label>
+            <input type="text" id="title" required placeholder="Ej. Historia de las comunicaciones" />
+          </div>
+
+          <div class="field">
+            <label for="description">Descripción</label>
+            <textarea id="description" required placeholder="Breve descripción de la unidad"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display: none;">Cancelar</button>
+            <button type="submit" class="btn btn-solid" id="submitBtn">Crear unidad</button>
+          </div>
+
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </section>
+
+      <section>
+        <h2 style="margin-bottom: 16px;">Unidades existentes</h2>
+        <div class="units-manage-list" id="unitsList">
+          <p class="empty-state">Cargando unidades...</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/admin-units.js"></script>
+</body>
+
+</html>

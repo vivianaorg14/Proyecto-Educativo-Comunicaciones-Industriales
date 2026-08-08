@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temas de la unidad · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="3" />
+            <path d="M9 9h6v6H9z" />
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          </svg>
+        </span>
+        <span class="admin-pill">Admin</span>
+      </a>
+      <div class="nav-actions">
+        <a class="btn btn-outline" href="/admin-units.html">← Volver a unidades</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="manage-wrap">
+    <div class="manage-header">
+      <p class="eyebrow">Administración</p>
+      <h1 id="unitTitle">Temas de la unidad</h1>
+      <p>Cada tema tiene su propio título, descripción, videos (por enlace), archivos PDF e imágenes.</p>
+    </div>
+
+    <div class="manage-grid">
+      <section class="panel panel-sticky">
+        <h2 id="formTitle">Nuevo tema</h2>
+        <p class="panel-sub" id="formSubtitle">Completa los datos y guarda para publicarlo.</p>
+
+        <form id="topicForm">
+          <input type="hidden" id="topicId" value="" />
+
+          <div class="field">
+            <label for="title">Título</label>
+            <input type="text" id="title" required placeholder="Ej. Origen del telégrafo" />
+          </div>
+
+          <div class="field">
+            <label for="description">Descripción</label>
+            <textarea id="description" required placeholder="Breve descripción del tema"></textarea>
+          </div>
+
+          <div class="subheading">
+            <span>Videos</span>
+            <button type="button" class="icon-btn" id="addVideoBtn" title="Agregar video">+</button>
+          </div>
+          <div id="videoRows"></div>
+          <p class="field-hint">Pega el enlace del video (YouTube u otro). Puedes agregar varios.</p>
+
+          <div class="subheading">
+            <span>PDFs existentes</span>
+          </div>
+          <ul class="pdf-list" id="existingPdfs"></ul>
+
+          <div class="field">
+            <label for="pdfFiles">Agregar PDFs</label>
+            <input type="file" id="pdfFiles" accept="application/pdf" multiple />
+            <p class="field-hint">Puedes seleccionar varios archivos PDF a la vez.</p>
+          </div>
+
+          <div class="subheading">
+            <span>Imágenes existentes</span>
+          </div>
+          <div class="image-thumb-list" id="existingImages"></div>
+
+          <div class="field">
+            <label for="imageFiles">Agregar imágenes</label>
+            <input type="file" id="imageFiles" accept="image/*" multiple />
+            <p class="field-hint">Puedes seleccionar varias imágenes a la vez (JPG, PNG, WEBP...).</p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display: none;">Cancelar</button>
+            <button type="submit" class="btn btn-solid" id="submitBtn">Crear tema</button>
+          </div>
+
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </section>
+
+      <section>
+        <h2 style="margin-bottom: 16px;">Temas existentes</h2>
+        <div class="units-manage-list" id="topicsList">
+          <p class="empty-state">Cargando temas...</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/admin-unit-topics.js"></script>
+</body>
+
+</html>

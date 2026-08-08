@@ -1,0 +1,274 @@
+/* Dashboard del estudiante/admin — reutiliza tokens, nav y botones de
+   landing.css (debe cargarse antes que este archivo). */
+
+.btn-block { width: 100%; }
+
+.dash-wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 6vw 80px;
+}
+
+/* ---------- User chip (nav) ---------- */
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-chip-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.user-chip-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.user-chip-email {
+  font-size: 11px;
+  color: var(--muted-soft);
+}
+
+/* ---------- Welcome banner ---------- */
+
+.welcome-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  color: #fff;
+  background: linear-gradient(115deg, #0b1230 0%, #16255c 55%, #1d3a8f 100%);
+  background-image: linear-gradient(115deg, #0b1230 0%, #16255c 55%, #1d3a8f 100%),
+    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: auto, 16px 16px;
+}
+
+.welcome-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9fb4ff;
+  margin: 0 0 10px;
+}
+
+.welcome-banner h1 {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.welcome-banner p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+}
+
+/* ---------- Layout ---------- */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 28px;
+  align-items: start;
+}
+
+.section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.section-head-row h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* ---------- Unit cards ---------- */
+
+.units-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.unit-dash-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.unit-dash-card:hover {
+  border-color: #cdd6ff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+  transform: translateY(-2px);
+}
+
+.unit-dash-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--blue-tint);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.unit-dash-icon svg { width: 18px; height: 18px; }
+
+.unit-dash-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+  margin-bottom: 6px;
+}
+
+.unit-dash-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.unit-dash-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.unit-dash-meta {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+/* ---------- Sidebar ---------- */
+
+.dash-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.profile-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-email {
+  font-size: 12px;
+  color: var(--muted-soft);
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+}
+
+.badge.badge-admin {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--green);
+}
+
+.side-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.side-panel-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+  margin: 0 0 12px;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  grid-column: 1 / -1;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-side { flex-direction: row; flex-wrap: wrap; }
+  .profile-card, .side-panel { flex: 1; min-width: 220px; }
+}
+
+@media (max-width: 620px) {
+  .units-dash-grid { grid-template-columns: 1fr; }
+  .user-chip-text { display: none; }
+}

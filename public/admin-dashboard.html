@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión del curso · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/admin-dashboard.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="3" />
+            <path d="M9 9h6v6H9z" />
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          </svg>
+        </span>
+        <span class="admin-pill">Admin</span>
+      </a>
+
+      <div class="nav-actions">
+        <div class="user-chip">
+          <span class="user-avatar" id="userAvatar">--</span>
+          <span class="user-chip-text">
+            <span class="user-chip-name" id="userName">Cargando...</span>
+            <span class="user-chip-email" id="userEmail"></span>
+          </span>
+        </div>
+        <button type="button" id="logoutBtn" class="btn btn-outline">Cerrar sesión</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="dash-wrap">
+    <div class="admin-header-row">
+      <div>
+        <h1>Gestión del curso</h1>
+        <p>Comunicaciones Industriales · Ingeniería Electrónica</p>
+      </div>
+      <a href="/admin-units.html" class="btn btn-solid">+ Nueva unidad</a>
+    </div>
+
+    <div class="admin-stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statUnits">–</div>
+        <div class="stat-label">Unidades</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statTopics">–</div>
+        <div class="stat-label">Temas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statStudents">–</div>
+        <div class="stat-label">Estudiantes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statResources">–</div>
+        <div class="stat-label">Recursos</div>
+      </div>
+    </div>
+
+    <p class="admin-section-title">Unidades y temas</p>
+
+    <div class="admin-units-list" id="adminUnitsList">
+      <p class="empty-state">Cargando unidades...</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+
+</html>
