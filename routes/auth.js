@@ -10,10 +10,18 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
   }
 
+  // Se arma con el host real de la petición (no un valor fijo) para que el
+  // enlace del correo de confirmación apunte al dominio correcto tanto en
+  // local como en producción.
+  const emailRedirectTo = `${req.protocol}://${req.get('host')}/login.html`;
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: fullName ? { data: { full_name: fullName } } : undefined,
+    options: {
+      ...(fullName ? { data: { full_name: fullName } } : {}),
+      emailRedirectTo,
+    },
   });
 
   if (error) {

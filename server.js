@@ -12,6 +12,10 @@ const contentRoutes = require('./routes/content');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Necesario detrás de un proxy inverso (Render, Railway, Vercel, etc.) para
+// que req.protocol refleje https en vez de caer siempre a http.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
 
@@ -42,5 +46,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
 });
