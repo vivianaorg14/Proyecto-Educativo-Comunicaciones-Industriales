@@ -107,23 +107,24 @@ router.delete('/:id', async (req, res) => {
   const topicIds = (topics || []).map((t) => t.id);
 
   if (topicIds.length) {
-    const [{ data: pdfs, error: pdfsError }, { data: images, error: imagesError }] = await Promise.all([
-      supabaseAdmin.from('unit_pdfs').select('storage_path').in('topic_id', topicIds),
-      supabaseAdmin.from('unit_images').select('storage_path').in('topic_id', topicIds),
-    ]);
+    const { data: blocks, error: blocksError } = await supabaseAdmin
+      .from('topic_blocks')
+      .select('type, content')
+      .in('topic_id', topicIds)
+      .in('type', ['image', 'file']);
 
-    if (pdfsError) {
-      return res.status(400).json({ error: pdfsError.message });
-    }
-    if (imagesError) {
-      return res.status(400).json({ error: imagesError.message });
+    if (blocksError) {
+      return res.status(400).json({ error: blocksError.message });
     }
 
-    if (pdfs?.length) {
-      await supabaseAdmin.storage.from(PDF_BUCKET).remove(pdfs.map((p) => p.storage_path));
+    const imagePaths = (blocks || []).filter((b) => b.type === 'image').map((b) => b.content.storage_path);
+    const filePaths = (blocks || []).filter((b) => b.type === 'file').map((b) => b.content.storage_path);
+
+    if (imagePaths.length) {
+      await supabaseAdmin.storage.from(IMAGE_BUCKET).remove(imagePaths);
     }
-    if (images?.length) {
-      await supabaseAdmin.storage.from(IMAGE_BUCKET).remove(images.map((i) => i.storage_path));
+    if (filePaths.length) {
+      await supabaseAdmin.storage.from(PDF_BUCKET).remove(filePaths);
     }
   }
 

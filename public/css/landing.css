@@ -136,6 +136,54 @@ p {
   color: var(--text);
 }
 
+/* ---------- Breadcrumb nav (course + admin editor) ---------- */
+
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.breadcrumb-trail a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumb-trail a:hover {
+  color: var(--text);
+}
+
+.breadcrumb-sep {
+  color: var(--muted-soft);
+}
+
+.breadcrumb-current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.breadcrumb-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.breadcrumb-back svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.breadcrumb-back:hover svg {
+  color: var(--text);
+}
+
 .admin-pill {
   display: inline-flex;
   align-items: center;

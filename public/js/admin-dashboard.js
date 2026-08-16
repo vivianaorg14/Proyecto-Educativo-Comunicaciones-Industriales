@@ -50,17 +50,24 @@
   const adminUnitsList = document.getElementById('adminUnitsList');
   const openUnitIds = new Set();
 
+  function blockCount(topic, type) {
+    return topic.blocks.filter((b) => b.type === type).length;
+  }
+
   function resourceCount(topic) {
-    return (topic.videos?.length || 0) + (topic.pdfs?.length || 0) + (topic.images?.length || 0);
+    return blockCount(topic, 'image') + blockCount(topic, 'file') + blockCount(topic, 'video');
   }
 
   function renderTopicRow(unitId, topic) {
     const parts = [];
-    if (topic.videos?.length) parts.push(`${topic.videos.length} video(s)`);
-    if (topic.pdfs?.length) parts.push(`${topic.pdfs.length} PDF(s)`);
-    if (topic.images?.length) parts.push(`${topic.images.length} imagen(es)`);
+    const videos = blockCount(topic, 'video');
+    const files = blockCount(topic, 'file');
+    const images = blockCount(topic, 'image');
+    if (videos) parts.push(`${videos} video(s)`);
+    if (files) parts.push(`${files} archivo(s)`);
+    if (images) parts.push(`${images} imagen(es)`);
     return `
-      <a class="admin-topic-row" href="/admin-unit-topics.html?unitId=${unitId}">
+      <a class="admin-topic-row" href="/admin-topic-editor.html?unitId=${unitId}&topicId=${topic.id}">
         <span class="admin-topic-title">${escapeHtml(topic.title)}</span>
         <span class="admin-topic-meta">${parts.join(' · ') || 'Sin contenido'}</span>
       </a>
@@ -101,7 +108,7 @@
         </button>
         <div class="admin-unit-topics">
           ${topicsHtml}
-          <a class="admin-add-topic" href="/admin-unit-topics.html?unitId=${unit.id}">+ Agregar tema</a>
+          <a class="admin-add-topic" href="/admin-topic-editor.html?unitId=${unit.id}">+ Agregar tema</a>
         </div>
       </article>
     `;

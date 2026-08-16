@@ -23,11 +23,7 @@
   const breadcrumbUnitTitle = document.getElementById('breadcrumbUnitTitle');
   const topicEyebrow = document.getElementById('topicEyebrow');
   const topicTitle = document.getElementById('topicTitle');
-  const topicBody = document.getElementById('topicBody');
-  const topicVideos = document.getElementById('topicVideos');
-  const topicImages = document.getElementById('topicImages');
-  const attachmentsSection = document.getElementById('attachmentsSection');
-  const attachmentsList = document.getElementById('attachmentsList');
+  const topicContent = document.getElementById('topicContent');
 
   breadcrumbBack.href = `/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}`;
 
@@ -87,12 +83,12 @@
     return null;
   }
 
-  function renderVideo(video) {
-    const embedUrl = youtubeEmbedUrl(video.url);
+  function renderVideoBlock(block) {
+    const embedUrl = youtubeEmbedUrl(block.url);
     if (embedUrl) {
       return `
         <div class="video-embed">
-          <iframe src="${embedUrl}" title="${escapeHtml(video.title || 'Video')}"
+          <iframe src="${embedUrl}" title="${escapeHtml(block.title || 'Video')}"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen></iframe>
         </div>
@@ -100,40 +96,30 @@
     }
     return `
       <ul class="video-link-list">
-        <li><a href="${video.url}" target="_blank" rel="noopener">🎬 ${escapeHtml(video.title || 'Ver video')} ↗</a></li>
+        <li><a href="${block.url}" target="_blank" rel="noopener">🎬 ${escapeHtml(block.title || 'Ver video')} ↗</a></li>
       </ul>
     `;
   }
 
-  function renderBody(description) {
-    const paragraphs = (description || '')
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean);
-
-    if (!paragraphs.length) return '';
-    return paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join('');
-  }
-
-  function renderImage(image) {
+  function renderImageBlock(block) {
     return `
       <figure class="topic-image-block">
-        <a href="${image.url || '#'}" target="_blank" rel="noopener">
-          <img src="${image.url || ''}" alt="${escapeHtml(image.title)}" loading="lazy" />
+        <a href="${block.url || '#'}" target="_blank" rel="noopener">
+          <img src="${block.url || ''}" alt="${escapeHtml(block.caption)}" loading="lazy" />
         </a>
-        <figcaption>${escapeHtml(image.title)}</figcaption>
+        ${block.caption ? `<figcaption>${escapeHtml(block.caption)}</figcaption>` : ''}
       </figure>
     `;
   }
 
-  function renderAttachment(pdf) {
-    const kind = fileKind(pdf.ext);
-    const sizeLabel = formatBytes(pdf.size_bytes);
+  function renderFileBlock(block) {
+    const kind = fileKind(block.ext);
+    const sizeLabel = formatBytes(block.size_bytes);
     return `
-      <a class="attachment-row" href="${pdf.url || '#'}" target="_blank" rel="noopener">
+      <a class="attachment-row" href="${block.url || '#'}" target="_blank" rel="noopener">
         <span class="attachment-icon ${kind.className}">${kind.label}</span>
         <span class="attachment-info">
-          <span class="attachment-name">${escapeHtml(pdf.title)}</span>
+          <span class="attachment-name">${escapeHtml(block.title)}</span>
           ${sizeLabel ? `<span class="attachment-size">${sizeLabel}</span>` : ''}
         </span>
         <svg class="attachment-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -144,6 +130,61 @@
     `;
   }
 
+  function renderBlocks(blocks) {
+    let html = '';
+    let listBuffer = [];
+    let listType = null;
+
+    function flushList() {
+      if (!listBuffer.length) return;
+      const tag = listType === 'numbered_list' ? 'ol' : 'ul';
+      html += `<${tag} class="topic-list-block">${listBuffer.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</${tag}>`;
+      listBuffer = [];
+      listType = null;
+    }
+
+    blocks.forEach((block) => {
+      if (block.type === 'bullet_list' || block.type === 'numbered_list') {
+        if (listType && listType !== block.type) flushList();
+        listType = block.type;
+        listBuffer.push(block.text);
+        return;
+      }
+
+      flushList();
+
+      switch (block.type) {
+        case 'heading':
+          html += `<h2>${escapeHtml(block.text)}</h2>`;
+          break;
+        case 'subheading':
+          html += `<h3>${escapeHtml(block.text)}</h3>`;
+          break;
+        case 'paragraph':
+          html += `<p>${escapeHtml(block.text)}</p>`;
+          break;
+        case 'callout':
+          html += `<div class="callout-block">${escapeHtml(block.text)}</div>`;
+          break;
+        case 'divider':
+          html += `<hr class="topic-divider" />`;
+          break;
+        case 'image':
+          html += renderImageBlock(block);
+          break;
+        case 'file':
+          html += renderFileBlock(block);
+          break;
+        case 'video':
+          html += renderVideoBlock(block);
+          break;
+      }
+    });
+
+    flushList();
+    return html;
+  }
+
   try {
     const res = await fetch(`/api/content/units/${unitId}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
@@ -152,7 +193,7 @@
 
     if (!res.ok) {
       topicTitle.textContent = 'No se pudo cargar el tema';
-      topicBody.innerHTML = `<p>${escapeHtml(data.error || '')}</p>`;
+      topicContent.innerHTML = `<p>${escapeHtml(data.error || '')}</p>`;
       return;
     }
 
@@ -165,22 +206,13 @@
 
     breadcrumbUnitTitle.textContent = data.unit.title;
     topicTitle.textContent = topic.title;
+    topicEyebrow.textContent = `Unidad ${String(unitIndex).padStart(2, '0')}`;
 
-    const eyebrowParts = [`Unidad ${String(unitIndex).padStart(2, '0')}`];
-    if (topic.duration_minutes) eyebrowParts.push(`${topic.duration_minutes} min`);
-    topicEyebrow.textContent = eyebrowParts.join(' · ');
-
-    topicBody.innerHTML = renderBody(topic.description) || '<p>Sin descripción todavía.</p>';
-
-    topicVideos.innerHTML = topic.videos.map(renderVideo).join('');
-    topicImages.innerHTML = topic.images.map(renderImage).join('');
-
-    if (topic.pdfs.length) {
-      attachmentsSection.hidden = false;
-      attachmentsList.innerHTML = topic.pdfs.map(renderAttachment).join('');
-    }
+    topicContent.innerHTML = topic.blocks.length
+      ? renderBlocks(topic.blocks)
+      : '<p class="empty-state">Este tema todavía no tiene contenido.</p>';
   } catch (err) {
     topicTitle.textContent = 'No se pudo cargar el tema';
-    topicBody.innerHTML = '<p>Intenta de nuevo más tarde.</p>';
+    topicContent.innerHTML = '<p>Intenta de nuevo más tarde.</p>';
   }
 })();

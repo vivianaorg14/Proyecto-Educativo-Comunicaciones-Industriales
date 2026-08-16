@@ -35,18 +35,19 @@
     }[c]));
   }
 
+  function countBlocksByType(blocks, type) {
+    return blocks.filter((b) => b.type === type).length;
+  }
+
   function renderTopicRow(topic, index) {
+    const images = countBlocksByType(topic.blocks, 'image');
+    const files = countBlocksByType(topic.blocks, 'file');
+    const videos = countBlocksByType(topic.blocks, 'video');
+
     const chips = [];
-    if (topic.duration_minutes) chips.push(`<span>${topic.duration_minutes} min</span>`);
-    if (topic.images.length) {
-      chips.push(`<span>🖼 ${topic.images.length} imagen${topic.images.length === 1 ? '' : 'es'}</span>`);
-    }
-    if (topic.pdfs.length) {
-      chips.push(`<span>📄 ${topic.pdfs.length} archivo${topic.pdfs.length === 1 ? '' : 's'}</span>`);
-    }
-    if (topic.videos.length) {
-      chips.push(`<span>🎬 ${topic.videos.length} video${topic.videos.length === 1 ? '' : 's'}</span>`);
-    }
+    if (images) chips.push(`<span>🖼 ${images} imagen${images === 1 ? '' : 'es'}</span>`);
+    if (files) chips.push(`<span>📄 ${files} archivo${files === 1 ? '' : 's'}</span>`);
+    if (videos) chips.push(`<span>🎬 ${videos} video${videos === 1 ? '' : 's'}</span>`);
 
     return `
       <a class="topic-row" href="/course-topic.html?unitId=${unitId}&topicId=${topic.id}&unitIndex=${unitIndex}">

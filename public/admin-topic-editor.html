@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de tema · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a class="breadcrumb-back" id="backLink" href="/admin-units.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+        <span id="unitTitleCrumb">Unidad</span>
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current" id="topicTitleCrumb">Nuevo tema</span>
+      <div class="nav-actions" style="margin-left: auto;">
+        <button type="button" id="saveBtn" class="btn btn-solid">Guardar</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="editor-wrap">
+    <input type="text" id="topicTitleInput" class="editor-title-input" placeholder="Título del tema" />
+    <hr class="editor-title-divider" />
+
+    <div id="blocksList" class="blocks-list"></div>
+
+    <div class="add-block-wrap">
+      <button type="button" id="addBlockBtn" class="add-block-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v8M8 12h8" />
+        </svg>
+        Agregar bloque
+      </button>
+
+      <div class="block-palette" id="blockPalette" hidden>
+        <p class="block-palette-title">Insertar bloque</p>
+        <div class="block-palette-grid">
+          <button type="button" data-type="paragraph"><span class="palette-glyph">¶</span><span>Texto</span></button>
+          <button type="button" data-type="heading"><span class="palette-glyph">T↑</span><span>Título</span></button>
+          <button type="button" data-type="subheading"><span class="palette-glyph">T</span><span>Subtítulo</span></button>
+          <button type="button" data-type="bullet_list"><span class="palette-glyph">•</span><span>Viñeta</span></button>
+          <button type="button" data-type="numbered_list"><span class="palette-glyph">1.</span><span>Numerada</span></button>
+          <button type="button" data-type="image"><span class="palette-glyph">▢</span><span>Imagen</span></button>
+          <button type="button" data-type="file"><span class="palette-glyph">▤</span><span>Archivo</span></button>
+          <button type="button" data-type="video"><span class="palette-glyph">▶</span><span>Video</span></button>
+          <button type="button" data-type="callout"><span class="palette-glyph">★</span><span>Destacado</span></button>
+          <button type="button" data-type="divider"><span class="palette-glyph">—</span><span>Separador</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="formMessage" class="form-message"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/admin-topic-editor.js"></script>
+</body>
+
+</html>

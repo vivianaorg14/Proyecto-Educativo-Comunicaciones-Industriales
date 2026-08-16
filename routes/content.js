@@ -10,16 +10,37 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hora
 // Cualquier usuario con sesión válida (estudiante o admin) puede leer el contenido.
 router.use(requireAuth);
 
-async function attachSignedUrls(bucket, rows) {
-  return Promise.all(
-    (rows || []).map(async (row) => {
-      const { data: signed } = await supabaseAdmin.storage
-        .from(bucket)
-        .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
-      const ext = (row.storage_path.split('.').pop() || '').toLowerCase();
-      return { id: row.id, title: row.title, size_bytes: row.size_bytes ?? null, ext, url: signed?.signedUrl || null };
-    })
-  );
+async function attachSignedUrl(bucket, storagePath) {
+  const { data } = await supabaseAdmin.storage.from(bucket).createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
+  return data?.signedUrl || null;
+}
+
+function extOf(storagePath) {
+  return (storagePath.split('.').pop() || '').toLowerCase();
+}
+
+async function serializeBlock(block) {
+  const c = block.content || {};
+  const base = { id: block.id, type: block.type };
+
+  switch (block.type) {
+    case 'image':
+      return { ...base, caption: c.caption || '', url: await attachSignedUrl(IMAGE_BUCKET, c.storage_path) };
+    case 'file':
+      return {
+        ...base,
+        title: c.title || '',
+        size_bytes: c.size_bytes ?? null,
+        ext: extOf(c.storage_path),
+        url: await attachSignedUrl(PDF_BUCKET, c.storage_path),
+      };
+    case 'video':
+      return { ...base, title: c.title || '', url: c.url };
+    case 'divider':
+      return base;
+    default: // heading, subheading, paragraph, bullet_list, numbered_list, callout
+      return { ...base, text: c.text || '' };
+  }
 }
 
 // Listar unidades (vista de estudiante)
@@ -52,7 +73,7 @@ router.get('/units', async (req, res) => {
   res.json({ units: withCounts });
 });
 
-// Detalle de una unidad: sus temas, con videos y PDFs (con URL firmada)
+// Detalle de una unidad: sus temas, con los bloques de contenido en orden
 router.get('/units/:id', async (req, res) => {
   const { data: unit, error: unitError } = await supabaseAdmin
     .from('units')
@@ -66,7 +87,7 @@ router.get('/units/:id', async (req, res) => {
 
   const { data: topics, error: topicsError } = await supabaseAdmin
     .from('unit_topics')
-    .select('id, title, description, duration_minutes')
+    .select('id, title')
     .eq('unit_id', unit.id)
     .order('created_at');
 
@@ -76,26 +97,15 @@ router.get('/units/:id', async (req, res) => {
 
   const fullTopics = await Promise.all(
     (topics || []).map(async (topic) => {
-      const [{ data: videos }, { data: pdfs }, { data: images }] = await Promise.all([
-        supabaseAdmin.from('unit_videos').select('id, title, url').eq('topic_id', topic.id).order('position'),
-        supabaseAdmin.from('unit_pdfs').select('id, title, storage_path, size_bytes').eq('topic_id', topic.id).order('position'),
-        supabaseAdmin.from('unit_images').select('id, title, storage_path').eq('topic_id', topic.id).order('position'),
-      ]);
+      const { data: blocks } = await supabaseAdmin
+        .from('topic_blocks')
+        .select('*')
+        .eq('topic_id', topic.id)
+        .order('position');
 
-      const [pdfsWithUrls, imagesWithUrls] = await Promise.all([
-        attachSignedUrls(PDF_BUCKET, pdfs),
-        attachSignedUrls(IMAGE_BUCKET, images),
-      ]);
+      const serializedBlocks = await Promise.all((blocks || []).map(serializeBlock));
 
-      return {
-        id: topic.id,
-        title: topic.title,
-        description: topic.description,
-        duration_minutes: topic.duration_minutes,
-        videos: videos || [],
-        pdfs: pdfsWithUrls,
-        images: imagesWithUrls,
-      };
+      return { id: topic.id, title: topic.title, blocks: serializedBlocks };
     })
   );
 

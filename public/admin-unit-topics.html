@@ -30,79 +30,17 @@
   </header>
 
   <main class="manage-wrap">
-    <div class="manage-header">
-      <p class="eyebrow">Administración</p>
-      <h1 id="unitTitle">Temas de la unidad</h1>
-      <p>Cada tema tiene su propio título, descripción, duración, videos (por enlace), archivos adjuntos e imágenes.</p>
+    <div class="manage-header manage-header-split">
+      <div>
+        <p class="eyebrow">Administración</p>
+        <h1 id="unitTitle">Temas de la unidad</h1>
+        <p>Cada tema es una secuencia de bloques (texto, títulos, listas, imágenes, archivos, video) en el orden que definas.</p>
+      </div>
+      <a href="#" id="newTopicBtn" class="btn btn-solid">+ Nuevo tema</a>
     </div>
 
-    <div class="manage-grid">
-      <section class="panel panel-sticky">
-        <h2 id="formTitle">Nuevo tema</h2>
-        <p class="panel-sub" id="formSubtitle">Completa los datos y guarda para publicarlo.</p>
-
-        <form id="topicForm">
-          <input type="hidden" id="topicId" value="" />
-
-          <div class="field">
-            <label for="title">Título</label>
-            <input type="text" id="title" required placeholder="Ej. Origen del telégrafo" />
-          </div>
-
-          <div class="field">
-            <label for="description">Descripción</label>
-            <textarea id="description" required placeholder="Breve descripción del tema. Puedes separar en varios párrafos dejando una línea en blanco."></textarea>
-          </div>
-
-          <div class="field">
-            <label for="durationMinutes">Duración (minutos)</label>
-            <input type="number" id="durationMinutes" min="0" step="1" placeholder="Ej. 25" />
-          </div>
-
-          <div class="subheading">
-            <span>Videos</span>
-            <button type="button" class="icon-btn" id="addVideoBtn" title="Agregar video">+</button>
-          </div>
-          <div id="videoRows"></div>
-          <p class="field-hint">Pega el enlace del video (YouTube u otro). Puedes agregar varios.</p>
-
-          <div class="subheading">
-            <span>Archivos existentes</span>
-          </div>
-          <ul class="pdf-list" id="existingPdfs"></ul>
-
-          <div class="field">
-            <label for="pdfFiles">Agregar archivos</label>
-            <input type="file" id="pdfFiles" accept=".pdf,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" multiple />
-            <p class="field-hint">PDF, Word, Excel, PowerPoint, ZIP o TXT. Puedes seleccionar varios a la vez.</p>
-          </div>
-
-          <div class="subheading">
-            <span>Imágenes existentes</span>
-          </div>
-          <div class="image-thumb-list" id="existingImages"></div>
-
-          <div class="field">
-            <label for="imageFiles">Agregar imágenes</label>
-            <input type="file" id="imageFiles" accept="image/*" multiple />
-            <p class="field-hint">Puedes seleccionar varias imágenes a la vez (JPG, PNG, WEBP...).</p>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display: none;">Cancelar</button>
-            <button type="submit" class="btn btn-solid" id="submitBtn">Crear tema</button>
-          </div>
-
-          <div id="formMessage" class="form-message"></div>
-        </form>
-      </section>
-
-      <section>
-        <h2 style="margin-bottom: 16px;">Temas existentes</h2>
-        <div class="units-manage-list" id="topicsList">
-          <p class="empty-state">Cargando temas...</p>
-        </div>
-      </section>
+    <div class="units-manage-list" id="topicsList">
+      <p class="empty-state">Cargando temas...</p>
     </div>
   </main>
 
