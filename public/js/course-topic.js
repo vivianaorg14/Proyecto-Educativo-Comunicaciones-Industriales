@@ -24,6 +24,7 @@
   const topicEyebrow = document.getElementById('topicEyebrow');
   const topicTitle = document.getElementById('topicTitle');
   const topicContent = document.getElementById('topicContent');
+  const topicNavFooter = document.getElementById('topicNavFooter');
 
   breadcrumbBack.href = `/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}`;
 
@@ -185,6 +186,58 @@
     return html;
   }
 
+  function topicLink(id) {
+    return `/course-topic.html?unitId=${unitId}&topicId=${id}&unitIndex=${unitIndex}`;
+  }
+
+  function renderNavFooter(topics, currentIndex) {
+    const prevTopic = currentIndex > 0 ? topics[currentIndex - 1] : null;
+    const nextTopic = currentIndex < topics.length - 1 ? topics[currentIndex + 1] : null;
+
+    const prevHtml = prevTopic
+      ? `
+        <a class="topic-nav-btn topic-nav-btn--prev" href="${topicLink(prevTopic.id)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+          <span>
+            <span class="topic-nav-label">Tema anterior</span>
+            <span class="topic-nav-title">${escapeHtml(prevTopic.title)}</span>
+          </span>
+        </a>
+      `
+      : '<span></span>';
+
+    const nextHtml = nextTopic
+      ? `
+        <a class="topic-nav-btn topic-nav-btn--next" href="${topicLink(nextTopic.id)}">
+          <span>
+            <span class="topic-nav-label">Siguiente tema</span>
+            <span class="topic-nav-title">${escapeHtml(nextTopic.title)}</span>
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      `
+      : `
+        <a class="topic-nav-btn topic-nav-btn--next" href="/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}">
+          <span>
+            <span class="topic-nav-label">Unidad completa</span>
+            <span class="topic-nav-title">Volver a la lista de temas</span>
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      `;
+
+    topicNavFooter.innerHTML = `
+      <hr class="topic-divider" />
+      <div class="topic-nav-row">${prevHtml}${nextHtml}</div>
+    `;
+  }
+
   try {
     const res = await fetch(`/api/content/units/${unitId}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
@@ -197,7 +250,8 @@
       return;
     }
 
-    const topic = data.topics.find((t) => t.id === topicId);
+    const currentIndex = data.topics.findIndex((t) => t.id === topicId);
+    const topic = data.topics[currentIndex];
     if (!topic) {
       topicTitle.textContent = 'Tema no encontrado';
       breadcrumbUnitTitle.textContent = data.unit.title;
@@ -211,6 +265,8 @@
     topicContent.innerHTML = topic.blocks.length
       ? renderBlocks(topic.blocks)
       : '<p class="empty-state">Este tema todavía no tiene contenido.</p>';
+
+    renderNavFooter(data.topics, currentIndex);
   } catch (err) {
     topicTitle.textContent = 'No se pudo cargar el tema';
     topicContent.innerHTML = '<p>Intenta de nuevo más tarde.</p>';
