@@ -40,12 +40,6 @@
   document.getElementById('userName').textContent = displayName;
   document.getElementById('userEmail').textContent = user.email;
 
-  document.getElementById('profileAvatar').textContent = initials;
-  document.getElementById('profileName').textContent = displayName;
-  document.getElementById('profileEmail').textContent = user.email;
-
-  document.getElementById('roleTag').textContent = 'Estudiante';
-
   document.getElementById('welcomeEyebrow').textContent = 'Bienvenido de vuelta';
   document.getElementById('welcomeName').textContent = displayName;
   document.getElementById('welcomeSub').textContent = 'Comunicaciones Industriales · Ingeniería Electromecánica';

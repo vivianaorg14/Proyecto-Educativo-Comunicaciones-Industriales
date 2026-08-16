@@ -85,13 +85,6 @@
 
 /* ---------- Layout ---------- */
 
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 28px;
-  align-items: start;
-}
-
 .section-head-row {
   display: flex;
   align-items: center;
@@ -172,84 +165,6 @@
   color: var(--blue);
 }
 
-/* ---------- Sidebar ---------- */
-
-.dash-side {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.profile-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
-}
-
-.profile-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 15px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.profile-name {
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.profile-email {
-  font-size: 12px;
-  color: var(--muted-soft);
-  margin-bottom: 8px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  background: var(--blue-tint);
-  color: var(--blue-dark);
-}
-
-.badge.badge-admin {
-  background: rgba(22, 163, 74, 0.12);
-  color: var(--green);
-}
-
-.side-panel {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
-}
-
-.side-panel-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted-soft);
-  margin: 0 0 12px;
-}
-
 .empty-state {
   color: var(--muted);
   font-size: 14px;
@@ -261,12 +176,6 @@
 }
 
 /* ---------- Responsive ---------- */
-
-@media (max-width: 860px) {
-  .dash-grid { grid-template-columns: 1fr; }
-  .dash-side { flex-direction: row; flex-wrap: wrap; }
-  .profile-card, .side-panel { flex: 1; min-width: 220px; }
-}
 
 @media (max-width: 620px) {
   .units-dash-grid { grid-template-columns: 1fr; }
