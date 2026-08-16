@@ -30,6 +30,8 @@
 
   breadcrumbBack.href = `/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}`;
 
+  let nextTarget = null; // { label, href } — se calcula al cargar la página
+
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
       '&': '&amp;',
@@ -94,10 +96,15 @@
       </div>
     `).join('');
 
+    const nextBtnHtml = nextTarget
+      ? `<a href="${nextTarget.href}" class="btn btn-solid">${nextTarget.label} →</a>`
+      : '';
+
     const actions = `
       <div class="quiz-result-actions">
         <button type="button" id="retryBtn" class="btn btn-outline">Volver a intentar</button>
-        <a href="/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}" class="btn btn-solid">Volver a la unidad</a>
+        <a href="/course-unit.html?unitId=${unitId}&unitIndex=${unitIndex}" class="btn btn-outline">Volver a la unidad</a>
+        ${nextBtnHtml}
       </div>
     `;
 
@@ -143,12 +150,14 @@
   });
 
   try {
-    const [unitRes, quizRes] = await Promise.all([
+    const [unitRes, quizRes, allUnitsRes] = await Promise.all([
       fetch(`/api/content/units/${unitId}`, { headers: await authHeaders() }),
       fetch(`/api/content/units/${unitId}/quizzes/${quizId}`, { headers: await authHeaders() }),
+      fetch('/api/content/units', { headers: await authHeaders() }),
     ]);
     const unitData = await unitRes.json();
     const quizData = await quizRes.json();
+    const allUnitsData = await allUnitsRes.json();
 
     if (unitRes.ok) {
       breadcrumbUnitTitle.textContent = unitData.unit.title;
@@ -156,6 +165,30 @@
 
     if (!quizRes.ok) {
       throw new Error(quizData.error || 'No se pudo cargar el quiz');
+    }
+
+    // Siguiente quiz de esta unidad, o si este era el último, la siguiente unidad.
+    if (unitRes.ok) {
+      const quizzesInUnit = unitData.quizzes || [];
+      const quizPos = quizzesInUnit.findIndex((q) => q.id === quizId);
+      const nextQuizInUnit = quizPos > -1 && quizPos < quizzesInUnit.length - 1 ? quizzesInUnit[quizPos + 1] : null;
+
+      if (nextQuizInUnit) {
+        nextTarget = {
+          label: 'Siguiente quiz',
+          href: `/course-quiz.html?unitId=${unitId}&quizId=${nextQuizInUnit.id}&unitIndex=${unitIndex}`,
+        };
+      } else if (allUnitsRes.ok) {
+        const units = allUnitsData.units || [];
+        const unitPos = units.findIndex((u) => u.id === unitId);
+        const nextUnit = unitPos > -1 && unitPos < units.length - 1 ? units[unitPos + 1] : null;
+        if (nextUnit) {
+          nextTarget = {
+            label: 'Siguiente unidad',
+            href: `/course-unit.html?unitId=${nextUnit.id}&unitIndex=${unitPos + 2}`,
+          };
+        }
+      }
     }
 
     quizEyebrow.textContent = `Unidad ${String(unitIndex).padStart(2, '0')}`;
