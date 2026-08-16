@@ -37,8 +37,8 @@
       return;
     }
 
-    unitsGrid.innerHTML = data.units.map((unit) => `
-      <a class="unit-browse-card" href="/course-unit.html?unitId=${unit.id}">
+    unitsGrid.innerHTML = data.units.map((unit, index) => `
+      <a class="unit-browse-card" href="/course-unit.html?unitId=${unit.id}&unitIndex=${index + 1}">
         <h3>${escapeHtml(unit.title)}</h3>
         <p>${escapeHtml(unit.description)}</p>
         <span class="unit-meta">${unit.topics_count} tema(s)</span>

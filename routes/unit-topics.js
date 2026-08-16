@@ -9,12 +9,27 @@ const PDF_BUCKET = 'unit-pdfs';
 const IMAGE_BUCKET = 'unit-images';
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hora, solo para previsualizar en el panel de admin
 
+// "pdfs" ahora es un campo genérico de archivos adjuntos (documentos,
+// hojas de cálculo, comprimidos...), no solo PDF.
+const ALLOWED_FILE_MIMETYPES = new Set([
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+]);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB por archivo
   fileFilter: (req, file, cb) => {
-    if (file.fieldname === 'pdfs' && file.mimetype !== 'application/pdf') {
-      return cb(new Error('El campo "pdfs" solo acepta archivos PDF'));
+    if (file.fieldname === 'pdfs' && !ALLOWED_FILE_MIMETYPES.has(file.mimetype)) {
+      return cb(new Error(`El archivo "${file.originalname}" tiene un tipo no permitido`));
     }
     if (file.fieldname === 'images' && !file.mimetype.startsWith('image/')) {
       return cb(new Error('El campo "images" solo acepta imágenes'));
@@ -74,7 +89,7 @@ async function uploadFilesToStorage(bucket, topicId, files) {
       throw new Error(`No se pudo subir "${file.originalname}": ${uploadError.message}`);
     }
 
-    rows.push({ title: file.originalname, storage_path: storagePath });
+    rows.push({ title: file.originalname, storage_path: storagePath, size_bytes: file.size });
   }
   return rows;
 }
@@ -97,9 +112,17 @@ async function attachSignedUrls(bucket, rows) {
 
 async function insertFileRows(table, topicId, rows, startPosition = 0) {
   if (!rows.length) return;
-  const { error } = await supabaseAdmin
-    .from(table)
-    .insert(rows.map((row, index) => ({ ...row, topic_id: topicId, position: startPosition + index })));
+  const prepared = rows.map((row, index) => {
+    const { size_bytes, ...rest } = row;
+    return {
+      ...rest,
+      ...(table === 'unit_pdfs' ? { size_bytes: size_bytes ?? null } : {}),
+      topic_id: topicId,
+      position: startPosition + index,
+    };
+  });
+
+  const { error } = await supabaseAdmin.from(table).insert(prepared);
   if (error) {
     throw new Error(error.message);
   }
@@ -159,7 +182,7 @@ router.get('/:topicId', async (req, res) => {
 // Crear tema (título, descripción, videos por enlace, PDFs e imágenes subidos)
 router.post('/', uploadFields, async (req, res) => {
   const { unitId } = req.params;
-  const { title, description } = req.body;
+  const { title, description, durationMinutes } = req.body;
 
   if (!title) {
     return res.status(400).json({ error: 'El título es obligatorio' });
@@ -174,7 +197,12 @@ router.post('/', uploadFields, async (req, res) => {
 
   const { data: topic, error: topicError } = await supabaseAdmin
     .from('unit_topics')
-    .insert({ unit_id: unitId, title, description: description || '' })
+    .insert({
+      unit_id: unitId,
+      title,
+      description: description || '',
+      duration_minutes: durationMinutes ? Number(durationMinutes) : null,
+    })
     .select()
     .single();
 
@@ -214,11 +242,14 @@ router.post('/', uploadFields, async (req, res) => {
 // con los endpoints DELETE /:topicId/pdfs/:pdfId y /:topicId/images/:imageId)
 router.put('/:topicId', uploadFields, async (req, res) => {
   const { topicId } = req.params;
-  const { title, description } = req.body;
+  const { title, description, durationMinutes } = req.body;
 
   const updates = {};
   if (title !== undefined) updates.title = title;
   if (description !== undefined) updates.description = description;
+  if (durationMinutes !== undefined) {
+    updates.duration_minutes = durationMinutes === '' ? null : Number(durationMinutes);
+  }
 
   if (Object.keys(updates).length) {
     const { error: updateError } = await supabaseAdmin
@@ -285,6 +316,54 @@ router.put('/:topicId', uploadFields, async (req, res) => {
     return res.status(404).json({ error: 'Tema no encontrado' });
   }
   res.json({ message: 'Tema actualizado', topic });
+});
+
+// Renombrar (poner leyenda a) un archivo adjunto
+router.patch('/:topicId/pdfs/:pdfId', async (req, res) => {
+  const { topicId, pdfId } = req.params;
+  const { title } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'El título no puede estar vacío' });
+  }
+
+  const { data: pdf, error } = await supabaseAdmin
+    .from('unit_pdfs')
+    .update({ title: title.trim() })
+    .eq('id', pdfId)
+    .eq('topic_id', topicId)
+    .select()
+    .single();
+
+  if (error || !pdf) {
+    return res.status(404).json({ error: error?.message || 'Archivo no encontrado' });
+  }
+
+  res.json({ message: 'Archivo actualizado', pdf });
+});
+
+// Renombrar (poner leyenda a) una imagen
+router.patch('/:topicId/images/:imageId', async (req, res) => {
+  const { topicId, imageId } = req.params;
+  const { title } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'El título no puede estar vacío' });
+  }
+
+  const { data: image, error } = await supabaseAdmin
+    .from('unit_images')
+    .update({ title: title.trim() })
+    .eq('id', imageId)
+    .eq('topic_id', topicId)
+    .select()
+    .single();
+
+  if (error || !image) {
+    return res.status(404).json({ error: error?.message || 'Imagen no encontrada' });
+  }
+
+  res.json({ message: 'Imagen actualizada', image });
 });
 
 // Borrar un PDF individual de un tema

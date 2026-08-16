@@ -16,7 +16,8 @@ async function attachSignedUrls(bucket, rows) {
       const { data: signed } = await supabaseAdmin.storage
         .from(bucket)
         .createSignedUrl(row.storage_path, SIGNED_URL_TTL_SECONDS);
-      return { id: row.id, title: row.title, url: signed?.signedUrl || null };
+      const ext = (row.storage_path.split('.').pop() || '').toLowerCase();
+      return { id: row.id, title: row.title, size_bytes: row.size_bytes ?? null, ext, url: signed?.signedUrl || null };
     })
   );
 }
@@ -65,7 +66,7 @@ router.get('/units/:id', async (req, res) => {
 
   const { data: topics, error: topicsError } = await supabaseAdmin
     .from('unit_topics')
-    .select('id, title, description')
+    .select('id, title, description, duration_minutes')
     .eq('unit_id', unit.id)
     .order('created_at');
 
@@ -77,7 +78,7 @@ router.get('/units/:id', async (req, res) => {
     (topics || []).map(async (topic) => {
       const [{ data: videos }, { data: pdfs }, { data: images }] = await Promise.all([
         supabaseAdmin.from('unit_videos').select('id, title, url').eq('topic_id', topic.id).order('position'),
-        supabaseAdmin.from('unit_pdfs').select('id, title, storage_path').eq('topic_id', topic.id).order('position'),
+        supabaseAdmin.from('unit_pdfs').select('id, title, storage_path, size_bytes').eq('topic_id', topic.id).order('position'),
         supabaseAdmin.from('unit_images').select('id, title, storage_path').eq('topic_id', topic.id).order('position'),
       ]);
 
@@ -90,6 +91,7 @@ router.get('/units/:id', async (req, res) => {
         id: topic.id,
         title: topic.title,
         description: topic.description,
+        duration_minutes: topic.duration_minutes,
         videos: videos || [],
         pdfs: pdfsWithUrls,
         images: imagesWithUrls,

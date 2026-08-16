@@ -48,7 +48,7 @@
 
   document.getElementById('welcomeEyebrow').textContent = 'Bienvenido de vuelta';
   document.getElementById('welcomeName').textContent = displayName;
-  document.getElementById('welcomeSub').textContent = 'Comunicaciones Industriales · Ingeniería Electrónica';
+  document.getElementById('welcomeSub').textContent = 'Comunicaciones Industriales · Ingeniería Electromecánica';
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await supabase.auth.signOut();

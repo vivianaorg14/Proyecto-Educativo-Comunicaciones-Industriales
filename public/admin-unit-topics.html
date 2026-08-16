@@ -33,7 +33,7 @@
     <div class="manage-header">
       <p class="eyebrow">Administración</p>
       <h1 id="unitTitle">Temas de la unidad</h1>
-      <p>Cada tema tiene su propio título, descripción, videos (por enlace), archivos PDF e imágenes.</p>
+      <p>Cada tema tiene su propio título, descripción, duración, videos (por enlace), archivos adjuntos e imágenes.</p>
     </div>
 
     <div class="manage-grid">
@@ -51,7 +51,12 @@
 
           <div class="field">
             <label for="description">Descripción</label>
-            <textarea id="description" required placeholder="Breve descripción del tema"></textarea>
+            <textarea id="description" required placeholder="Breve descripción del tema. Puedes separar en varios párrafos dejando una línea en blanco."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="durationMinutes">Duración (minutos)</label>
+            <input type="number" id="durationMinutes" min="0" step="1" placeholder="Ej. 25" />
           </div>
 
           <div class="subheading">
@@ -62,14 +67,14 @@
           <p class="field-hint">Pega el enlace del video (YouTube u otro). Puedes agregar varios.</p>
 
           <div class="subheading">
-            <span>PDFs existentes</span>
+            <span>Archivos existentes</span>
           </div>
           <ul class="pdf-list" id="existingPdfs"></ul>
 
           <div class="field">
-            <label for="pdfFiles">Agregar PDFs</label>
-            <input type="file" id="pdfFiles" accept="application/pdf" multiple />
-            <p class="field-hint">Puedes seleccionar varios archivos PDF a la vez.</p>
+            <label for="pdfFiles">Agregar archivos</label>
+            <input type="file" id="pdfFiles" accept=".pdf,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" multiple />
+            <p class="field-hint">PDF, Word, Excel, PowerPoint, ZIP o TXT. Puedes seleccionar varios a la vez.</p>
           </div>
 
           <div class="subheading">

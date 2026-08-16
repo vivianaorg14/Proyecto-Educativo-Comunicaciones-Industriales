@@ -27,6 +27,7 @@
   const topicIdInput = document.getElementById('topicId');
   const titleInput = document.getElementById('title');
   const descriptionInput = document.getElementById('description');
+  const durationMinutesInput = document.getElementById('durationMinutes');
   const videoRows = document.getElementById('videoRows');
   const addVideoBtn = document.getElementById('addVideoBtn');
   const existingPdfs = document.getElementById('existingPdfs');
@@ -64,6 +65,13 @@
     formMessage.className = `form-message ${type}`;
   }
 
+  function formatBytes(bytes) {
+    if (!bytes && bytes !== 0) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   function addVideoRow(title = '', url = '') {
     const row = document.createElement('div');
     row.className = 'video-row';
@@ -86,16 +94,22 @@
   function renderExistingPdfs(pdfs, topicId) {
     existingPdfs.innerHTML = '';
     if (!pdfs.length) {
-      existingPdfs.innerHTML = '<li style="justify-content: center; color: var(--muted);">Sin PDFs todavía</li>';
+      existingPdfs.innerHTML = '<li style="justify-content: center; color: var(--muted);">Sin archivos todavía</li>';
       return;
     }
     pdfs.forEach((pdf) => {
       const li = document.createElement('li');
+      const sizeLabel = formatBytes(pdf.size_bytes);
       li.innerHTML = `
-        <a href="${pdf.url || '#'}" target="_blank" rel="noopener">${escapeHtml(pdf.title)}</a>
-        <button type="button" class="icon-btn icon-btn-danger" title="Eliminar PDF">×</button>
+        <a href="${pdf.url || '#'}" target="_blank" rel="noopener">${escapeHtml(pdf.title)}${sizeLabel ? ` <span style="color: var(--muted);">(${sizeLabel})</span>` : ''}</a>
+        <span style="display: flex; gap: 4px;">
+          <button type="button" class="icon-btn" title="Renombrar">✎</button>
+          <button type="button" class="icon-btn icon-btn-danger" title="Eliminar archivo">×</button>
+        </span>
       `;
-      li.querySelector('button').addEventListener('click', () => deletePdf(topicId, pdf.id));
+      const [renameBtn, deleteBtn] = li.querySelectorAll('button');
+      renameBtn.addEventListener('click', () => renamePdf(topicId, pdf));
+      deleteBtn.addEventListener('click', () => deletePdf(topicId, pdf.id));
       existingPdfs.appendChild(li);
     });
   }
@@ -109,13 +123,16 @@
     images.forEach((image) => {
       const item = document.createElement('div');
       item.className = 'image-thumb-item';
+      item.title = image.title;
       item.innerHTML = `
         <a href="${image.url || '#'}" target="_blank" rel="noopener">
           <img src="${image.url || ''}" alt="${escapeHtml(image.title)}" />
         </a>
+        <button type="button" class="icon-btn image-thumb-rename" title="Editar leyenda">✎</button>
         <button type="button" class="icon-btn icon-btn-danger image-thumb-remove" title="Eliminar imagen">×</button>
       `;
-      item.querySelector('button').addEventListener('click', () => deleteImage(topicId, image.id));
+      item.querySelector('.image-thumb-rename').addEventListener('click', () => renameImage(topicId, image));
+      item.querySelector('.image-thumb-remove').addEventListener('click', () => deleteImage(topicId, image.id));
       existingImages.appendChild(item);
     });
   }
@@ -123,6 +140,7 @@
   function resetForm() {
     topicIdInput.value = '';
     form.reset();
+    durationMinutesInput.value = '';
     videoRows.innerHTML = '';
     addVideoRow();
     existingPdfs.innerHTML = '<li style="justify-content: center; color: var(--muted);">Se guardan al crear el tema</li>';
@@ -137,6 +155,7 @@
     topicIdInput.value = topic.id;
     titleInput.value = topic.title;
     descriptionInput.value = topic.description;
+    durationMinutesInput.value = topic.duration_minutes ?? '';
     videoRows.innerHTML = '';
     if (topic.videos.length) {
       topic.videos.forEach((v) => addVideoRow(v.title, v.url));
@@ -167,8 +186,9 @@
         <h3>${escapeHtml(topic.title)}</h3>
         <p>${escapeHtml(topic.description)}</p>
         <div class="unit-meta">
+          ${topic.duration_minutes ? `<span>⏱ ${topic.duration_minutes} min</span>` : ''}
           <span>🎬 ${topic.videos.length} video(s)</span>
-          <span>📄 ${topic.pdfs.length} PDF(s)</span>
+          <span>📄 ${topic.pdfs.length} archivo(s)</span>
           <span>🖼️ ${topic.images.length} imagen(es)</span>
         </div>
         <div class="unit-manage-actions">
@@ -238,6 +258,40 @@
     await loadTopics();
   }
 
+  async function renamePdf(topicId, pdf) {
+    const newTitle = prompt('Nuevo nombre del archivo:', pdf.title);
+    if (newTitle === null) return;
+    const res = await fetch(`${API_BASE}/${topicId}/pdfs/${pdf.id}`, {
+      method: 'PATCH',
+      headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'No se pudo renombrar el archivo');
+      return;
+    }
+    const refreshed = await (await fetch(`${API_BASE}/${topicId}`, { headers: await authHeaders() })).json();
+    renderExistingPdfs(refreshed.topic.pdfs, topicId);
+  }
+
+  async function renameImage(topicId, image) {
+    const newTitle = prompt('Leyenda de la imagen:', image.title);
+    if (newTitle === null) return;
+    const res = await fetch(`${API_BASE}/${topicId}/images/${image.id}`, {
+      method: 'PATCH',
+      headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'No se pudo actualizar la leyenda');
+      return;
+    }
+    const refreshed = await (await fetch(`${API_BASE}/${topicId}`, { headers: await authHeaders() })).json();
+    renderExistingImages(refreshed.topic.images, topicId);
+  }
+
   async function deleteImage(topicId, imageId) {
     if (!confirm('¿Eliminar esta imagen?')) return;
     const res = await fetch(`${API_BASE}/${topicId}/images/${imageId}`, {
@@ -267,6 +321,7 @@
     const formData = new FormData();
     formData.append('title', titleInput.value.trim());
     formData.append('description', descriptionInput.value.trim());
+    formData.append('durationMinutes', durationMinutesInput.value.trim());
     formData.append('videos', JSON.stringify(videos));
     Array.from(pdfFilesInput.files).forEach((file) => formData.append('pdfs', file));
     Array.from(imageFilesInput.files).forEach((file) => formData.append('images', file));

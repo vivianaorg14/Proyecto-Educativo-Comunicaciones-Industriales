@@ -21,25 +21,23 @@
             <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
           </svg>
         </span>
-        <span class="nav-brand-text">
-          <span class="nav-brand-name">Comunicaciones Industriales</span>
-          <span class="nav-brand-sub">ING. ELECTRÓNICA</span>
-        </span>
       </a>
-      <div class="nav-actions">
-        <a class="btn btn-outline" href="/course.html">← Volver a unidades</a>
+      <div class="breadcrumb-trail">
+        <a href="/course.html">Mi curso</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current" id="breadcrumbUnit">Cargando...</span>
       </div>
     </nav>
   </header>
 
   <main class="course-wrap">
-    <div class="course-header">
-      <p class="eyebrow">Curso</p>
-      <h1 id="unitTitle">Cargando...</h1>
-      <p id="unitDescription"></p>
-    </div>
+    <p class="topics-eyebrow" id="unitEyebrow">Unidad</p>
+    <h1 id="unitTitle">Cargando...</h1>
+    <p class="unit-lead" id="unitDescription"></p>
 
-    <div id="topicsContainer">
+    <p class="topics-count-label" id="topicsCountLabel"></p>
+
+    <div class="topic-list" id="topicsList">
       <p class="empty-state">Cargando temas...</p>
     </div>
   </main>

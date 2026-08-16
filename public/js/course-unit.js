@@ -9,15 +9,21 @@
     return;
   }
 
-  const unitId = new URLSearchParams(window.location.search).get('unitId');
+  const params = new URLSearchParams(window.location.search);
+  const unitId = params.get('unitId');
+  const unitIndex = params.get('unitIndex') || '1';
+
   if (!unitId) {
     window.location.href = '/course.html';
     return;
   }
 
+  const breadcrumbUnit = document.getElementById('breadcrumbUnit');
+  const unitEyebrow = document.getElementById('unitEyebrow');
   const unitTitle = document.getElementById('unitTitle');
   const unitDescription = document.getElementById('unitDescription');
-  const topicsContainer = document.getElementById('topicsContainer');
+  const topicsCountLabel = document.getElementById('topicsCountLabel');
+  const topicsList = document.getElementById('topicsList');
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -29,84 +35,30 @@
     }[c]));
   }
 
-  function youtubeEmbedUrl(url) {
-    try {
-      const parsed = new URL(url);
-      const host = parsed.hostname.replace(/^www\./, '');
-
-      if (host === 'youtu.be') {
-        return `https://www.youtube.com/embed/${parsed.pathname.slice(1)}`;
-      }
-      if (host === 'youtube.com' || host === 'm.youtube.com') {
-        if (parsed.pathname === '/watch') {
-          const id = parsed.searchParams.get('v');
-          return id ? `https://www.youtube.com/embed/${id}` : null;
-        }
-        if (parsed.pathname.startsWith('/embed/')) {
-          return url;
-        }
-      }
-    } catch {
-      return null;
+  function renderTopicRow(topic, index) {
+    const chips = [];
+    if (topic.duration_minutes) chips.push(`<span>${topic.duration_minutes} min</span>`);
+    if (topic.images.length) {
+      chips.push(`<span>🖼 ${topic.images.length} imagen${topic.images.length === 1 ? '' : 'es'}</span>`);
     }
-    return null;
-  }
-
-  function renderVideo(video) {
-    const embedUrl = youtubeEmbedUrl(video.url);
-    if (embedUrl) {
-      return `
-        <div class="video-embed">
-          <iframe src="${embedUrl}" title="${escapeHtml(video.title || 'Video')}"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
-        </div>
-      `;
+    if (topic.pdfs.length) {
+      chips.push(`<span>📄 ${topic.pdfs.length} archivo${topic.pdfs.length === 1 ? '' : 's'}</span>`);
     }
-    return `
-      <ul class="video-link-list">
-        <li><a href="${video.url}" target="_blank" rel="noopener">🎬 ${escapeHtml(video.title || 'Ver video')} ↗</a></li>
-      </ul>
-    `;
-  }
-
-  function renderTopic(topic) {
-    const videosHtml = topic.videos.length
-      ? topic.videos.map(renderVideo).join('')
-      : '';
-
-    const imagesHtml = topic.images.length
-      ? `
-        <p class="topic-subheading">Imágenes</p>
-        <div class="image-gallery">
-          ${topic.images.map((image) => `
-            <a href="${image.url || '#'}" target="_blank" rel="noopener">
-              <img src="${image.url || ''}" alt="${escapeHtml(image.title)}" loading="lazy" />
-            </a>
-          `).join('')}
-        </div>
-      `
-      : '';
-
-    const pdfsHtml = topic.pdfs.length
-      ? `
-        <p class="topic-subheading">Material en PDF</p>
-        <ul class="pdf-download-list">
-          ${topic.pdfs.map((pdf) => `
-            <li><a href="${pdf.url || '#'}" target="_blank" rel="noopener">📄 ${escapeHtml(pdf.title)}</a></li>
-          `).join('')}
-        </ul>
-      `
-      : '';
+    if (topic.videos.length) {
+      chips.push(`<span>🎬 ${topic.videos.length} video${topic.videos.length === 1 ? '' : 's'}</span>`);
+    }
 
     return `
-      <article class="topic-card">
-        <h3>${escapeHtml(topic.title)}</h3>
-        <p>${escapeHtml(topic.description)}</p>
-        ${videosHtml}
-        ${imagesHtml}
-        ${pdfsHtml}
-      </article>
+      <a class="topic-row" href="/course-topic.html?unitId=${unitId}&topicId=${topic.id}&unitIndex=${unitIndex}">
+        <span class="topic-row-number">${String(index + 1).padStart(2, '0')}</span>
+        <span class="topic-row-info">
+          <span class="topic-row-title">${escapeHtml(topic.title)}</span>
+          <span class="topic-row-meta">${chips.join('') || '<span>Sin contenido todavía</span>'}</span>
+        </span>
+        <svg class="topic-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </a>
     `;
   }
 
@@ -118,21 +70,26 @@
 
     if (!res.ok) {
       unitTitle.textContent = 'No se pudo cargar la unidad';
-      topicsContainer.innerHTML = `<p class="empty-state">${escapeHtml(data.error || '')}</p>`;
+      topicsList.innerHTML = `<p class="empty-state">${escapeHtml(data.error || '')}</p>`;
       return;
     }
 
+    unitEyebrow.textContent = `Unidad ${String(unitIndex).padStart(2, '0')}`;
     unitTitle.textContent = data.unit.title;
     unitDescription.textContent = data.unit.description;
+    breadcrumbUnit.textContent = data.unit.title;
 
-    if (!data.topics.length) {
-      topicsContainer.innerHTML = '<p class="empty-state">Esta unidad todavía no tiene temas publicados.</p>';
+    const count = data.topics.length;
+    topicsCountLabel.textContent = `Temas — ${count} en total`;
+
+    if (!count) {
+      topicsList.innerHTML = '<p class="empty-state">Esta unidad todavía no tiene temas publicados.</p>';
       return;
     }
 
-    topicsContainer.innerHTML = data.topics.map(renderTopic).join('');
+    topicsList.innerHTML = data.topics.map(renderTopicRow).join('');
   } catch (err) {
     unitTitle.textContent = 'No se pudo cargar la unidad';
-    topicsContainer.innerHTML = '<p class="empty-state">Intenta de nuevo más tarde.</p>';
+    topicsList.innerHTML = '<p class="empty-state">Intenta de nuevo más tarde.</p>';
   }
 })();

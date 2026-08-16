@@ -208,6 +208,25 @@
   display: block;
 }
 
+.image-thumb-rename {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(11, 14, 23, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.image-thumb-rename:hover {
+  border-color: #fff;
+  background: rgba(51, 85, 242, 0.75);
+  color: #fff;
+}
+
 .image-thumb-remove {
   position: absolute;
   top: 4px;

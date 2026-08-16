@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contenido del curso · Comunicaciones Industriales</title>
+  <title>Tema · Comunicaciones Industriales</title>
   <link rel="stylesheet" href="/css/landing.css" />
   <link rel="stylesheet" href="/css/course.css" />
 </head>
@@ -21,32 +21,34 @@
             <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
           </svg>
         </span>
-        <span class="nav-brand-text">
-          <span class="nav-brand-name">Comunicaciones Industriales</span>
-          <span class="nav-brand-sub">ING. ELECTROMECÁNICA</span>
-        </span>
       </a>
-      <div class="nav-actions">
-        <a class="btn btn-outline" href="/dashboard.html">← Volver al panel</a>
-      </div>
+      <a class="breadcrumb-back" id="breadcrumbBack" href="/course.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+        <span id="breadcrumbUnitTitle">Cargando...</span>
+      </a>
     </nav>
   </header>
 
   <main class="course-wrap">
-    <div class="course-header">
-      <p class="eyebrow">Curso</p>
-      <h1>Unidades</h1>
-      <p>Elige una unidad para ver sus temas, videos y material en PDF.</p>
-    </div>
+    <p class="topics-eyebrow" id="topicEyebrow">Cargando...</p>
+    <h1 id="topicTitle">Cargando...</h1>
 
-    <div class="units-browse-grid" id="unitsGrid">
-      <p class="empty-state">Cargando unidades...</p>
+    <div class="topic-body" id="topicBody"></div>
+
+    <div id="topicVideos"></div>
+    <div id="topicImages"></div>
+
+    <div class="attachments-section" id="attachmentsSection" hidden>
+      <p class="attachments-title">Archivos adjuntos</p>
+      <div class="attachment-list" id="attachmentsList"></div>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/js/supabaseClient.js"></script>
-  <script src="/js/course.js"></script>
+  <script src="/js/course-topic.js"></script>
 </body>
 
 </html>
