@@ -269,6 +269,40 @@
     focusBlockInput(index + 1);
   });
 
+  // Pegar texto con varias líneas dentro de una viñeta/numerada reparte cada
+  // línea en su propio bloque (quitando el "•", "-" o "1." si ya venían).
+  blocksList.addEventListener('paste', (e) => {
+    const input = e.target;
+    if (!(input.matches?.('[data-field="text"]') && input.tagName === 'INPUT')) return;
+
+    const index = Number(input.dataset.index);
+    const block = blocks[index];
+    if (!block || !LIST_TYPES.has(block.type)) return;
+
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    if (!pasted || !pasted.includes('\n')) return; // una sola línea: comportamiento normal
+
+    e.preventDefault();
+
+    const lines = pasted
+      .split(/\r\n|\r|\n/)
+      .map((line) => line.replace(/^\s*[•\-*–]\s*/, '').replace(/^\s*\d+[.)]\s*/, '').trim())
+      .filter(Boolean);
+
+    if (!lines.length) return;
+
+    block.text = lines[0];
+    const newBlocks = lines.slice(1).map((text) => {
+      const b = createBlock(block.type);
+      b.text = text;
+      return b;
+    });
+    blocks.splice(index + 1, 0, ...newBlocks);
+
+    renderBlocksList();
+    focusBlockInput(index + newBlocks.length);
+  });
+
   // ---------- Agregar bloque ----------
 
   addBlockBtn.addEventListener('click', () => {
