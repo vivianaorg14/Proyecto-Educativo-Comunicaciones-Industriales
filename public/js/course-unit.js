@@ -24,6 +24,8 @@
   const unitDescription = document.getElementById('unitDescription');
   const topicsCountLabel = document.getElementById('topicsCountLabel');
   const topicsList = document.getElementById('topicsList');
+  const quizCard = document.getElementById('quizCard');
+  const quizCardTitle = document.getElementById('quizCardTitle');
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -89,6 +91,12 @@
     }
 
     topicsList.innerHTML = data.topics.map(renderTopicRow).join('');
+
+    if (data.quiz) {
+      quizCard.href = `/course-quiz.html?unitId=${unitId}&unitIndex=${unitIndex}`;
+      quizCardTitle.textContent = data.quiz.title;
+      quizCard.style.display = 'flex';
+    }
   } catch (err) {
     unitTitle.textContent = 'No se pudo cargar la unidad';
     topicsList.innerHTML = '<p class="empty-state">Intenta de nuevo más tarde.</p>';

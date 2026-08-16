@@ -109,7 +109,121 @@ router.get('/units/:id', async (req, res) => {
     })
   );
 
-  res.json({ unit, topics: fullTopics });
+  const { data: quiz } = await supabaseAdmin
+    .from('quizzes')
+    .select('id, title')
+    .eq('unit_id', unit.id)
+    .maybeSingle();
+
+  res.json({ unit, topics: fullTopics, quiz: quiz || null });
+});
+
+// Quiz de una unidad, listo para responder (sin exponer cuál opción es correcta)
+router.get('/units/:unitId/quiz', async (req, res) => {
+  const { data: quiz, error } = await supabaseAdmin
+    .from('quizzes')
+    .select('*')
+    .eq('unit_id', req.params.unitId)
+    .maybeSingle();
+
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  if (!quiz) {
+    return res.json({ quiz: null });
+  }
+
+  const { data: questions, error: questionsError } = await supabaseAdmin
+    .from('quiz_questions')
+    .select('id, text')
+    .eq('quiz_id', quiz.id)
+    .order('position');
+
+  if (questionsError) {
+    return res.status(400).json({ error: questionsError.message });
+  }
+
+  const fullQuestions = await Promise.all(
+    (questions || []).map(async (q) => {
+      const { data: options } = await supabaseAdmin
+        .from('quiz_options')
+        .select('id, text')
+        .eq('question_id', q.id)
+        .order('position');
+      return { id: q.id, text: q.text, options: options || [] };
+    })
+  );
+
+  res.json({ quiz: { id: quiz.id, title: quiz.title, questions: fullQuestions } });
+});
+
+// Califica el quiz. La corrección se hace acá, del lado del servidor, para
+// que el estudiante nunca reciba cuál opción es la correcta de antemano.
+router.post('/units/:unitId/quiz/submit', async (req, res) => {
+  const { answers } = req.body;
+
+  if (!Array.isArray(answers)) {
+    return res.status(400).json({ error: 'El campo "answers" debe ser un arreglo' });
+  }
+
+  const { data: quiz, error: quizError } = await supabaseAdmin
+    .from('quizzes')
+    .select('id')
+    .eq('unit_id', req.params.unitId)
+    .maybeSingle();
+
+  if (quizError) {
+    return res.status(400).json({ error: quizError.message });
+  }
+  if (!quiz) {
+    return res.status(404).json({ error: 'Esta unidad no tiene quiz' });
+  }
+
+  const { data: questions, error: questionsError } = await supabaseAdmin
+    .from('quiz_questions')
+    .select('id, text')
+    .eq('quiz_id', quiz.id)
+    .order('position');
+
+  if (questionsError) {
+    return res.status(400).json({ error: questionsError.message });
+  }
+
+  const selectedByQuestion = new Map(answers.map((a) => [a.questionId, a.optionId]));
+
+  const results = await Promise.all(
+    (questions || []).map(async (q) => {
+      const { data: options } = await supabaseAdmin
+        .from('quiz_options')
+        .select('id, text, is_correct')
+        .eq('question_id', q.id)
+        .order('position');
+
+      const correctOption = (options || []).find((o) => o.is_correct);
+      const selectedOptionId = selectedByQuestion.get(q.id) || null;
+      const isCorrect = !!selectedOptionId && selectedOptionId === correctOption?.id;
+
+      return {
+        questionId: q.id,
+        questionText: q.text,
+        options: (options || []).map((o) => ({ id: o.id, text: o.text })),
+        selectedOptionId,
+        correctOptionId: correctOption?.id || null,
+        isCorrect,
+      };
+    })
+  );
+
+  const totalQuestions = results.length;
+  const correctCount = results.filter((r) => r.isCorrect).length;
+  const scorePercent = totalQuestions ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+  res.json({
+    score_percent: scorePercent,
+    correct_count: correctCount,
+    total_questions: totalQuestions,
+    results,
+  });
 });
 
 module.exports = router;

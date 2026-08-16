@@ -194,6 +194,13 @@
   white-space: nowrap;
 }
 
+.admin-unit-topics-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
 .admin-add-topic {
   display: inline-flex;
   align-items: center;

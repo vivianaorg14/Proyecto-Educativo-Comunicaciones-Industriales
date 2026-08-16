@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/course.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="3" />
+            <path d="M9 9h6v6H9z" />
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          </svg>
+        </span>
+      </a>
+      <a class="breadcrumb-back" id="breadcrumbBack" href="/course.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+        <span id="breadcrumbUnitTitle">Volver a la unidad</span>
+      </a>
+    </nav>
+  </header>
+
+  <main class="course-wrap">
+    <p class="topics-eyebrow" id="quizEyebrow">Quiz</p>
+    <h1 id="quizTitle">Cargando...</h1>
+
+    <form id="quizForm">
+      <div id="questionsContainer" class="quiz-questions">
+        <p class="empty-state">Cargando preguntas...</p>
+      </div>
+      <button type="submit" id="submitQuizBtn" class="btn btn-solid btn-lg" style="display: none;">Enviar respuestas</button>
+    </form>
+
+    <div id="resultsContainer" hidden></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/course-quiz.js"></script>
+</body>
+
+</html>

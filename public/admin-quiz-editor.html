@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de quiz · Comunicaciones Industriales</title>
+  <link rel="stylesheet" href="/css/landing.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="accent-bar"></div>
+    <nav class="nav">
+      <a class="breadcrumb-back" id="backLink" href="/admin-units.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+        <span id="unitTitleCrumb">Unidad</span>
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Quiz</span>
+      <div class="nav-actions" style="margin-left: auto;">
+        <button type="button" id="deleteQuizBtn" class="btn btn-outline" style="display: none;">Eliminar quiz</button>
+        <button type="button" id="saveBtn" class="btn btn-solid">Guardar</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="editor-wrap">
+    <input type="text" id="quizTitleInput" class="editor-title-input" placeholder="Título del quiz" />
+    <hr class="editor-title-divider" />
+
+    <div id="questionsList" class="questions-list"></div>
+
+    <button type="button" id="addQuestionBtn" class="add-block-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v8M8 12h8" />
+      </svg>
+      Agregar pregunta
+    </button>
+
+    <div id="formMessage" class="form-message"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/admin-quiz-editor.js"></script>
+</body>
+
+</html>

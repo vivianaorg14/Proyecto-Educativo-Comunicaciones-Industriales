@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const unitsRoutes = require('./routes/units');
 const unitTopicsRoutes = require('./routes/unit-topics');
+const quizzesRoutes = require('./routes/quizzes');
 const contentRoutes = require('./routes/content');
 
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/units', unitsRoutes);
 app.use('/api/admin/units/:unitId/topics', unitTopicsRoutes);
+app.use('/api/admin/units/:unitId/quiz', quizzesRoutes);
 app.use('/api/content', contentRoutes);
 
 // Config pública para que el frontend pueda hablar directo con Supabase (necesario para el login con Google)

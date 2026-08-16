@@ -108,7 +108,10 @@
         </button>
         <div class="admin-unit-topics">
           ${topicsHtml}
-          <a class="admin-add-topic" href="/admin-topic-editor.html?unitId=${unit.id}">+ Agregar tema</a>
+          <div class="admin-unit-topics-actions">
+            <a class="admin-add-topic" href="/admin-topic-editor.html?unitId=${unit.id}">+ Agregar tema</a>
+            <a class="admin-add-topic" href="/admin-quiz-editor.html?unitId=${unit.id}">📝 Quiz de la unidad</a>
+          </div>
         </div>
       </article>
     `;

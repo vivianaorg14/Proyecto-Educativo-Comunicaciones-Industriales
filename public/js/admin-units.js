@@ -88,6 +88,7 @@
         </div>
         <div class="unit-manage-actions">
           <a class="btn btn-solid" href="/admin-unit-topics.html?unitId=${unit.id}">Gestionar temas →</a>
+          <a class="btn btn-ghost" href="/admin-quiz-editor.html?unitId=${unit.id}">Quiz</a>
           <button type="button" class="btn btn-ghost" data-action="edit">Editar</button>
           <button type="button" class="btn btn-ghost" data-action="delete">Eliminar</button>
         </div>
