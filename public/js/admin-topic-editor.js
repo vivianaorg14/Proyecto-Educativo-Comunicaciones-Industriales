@@ -229,6 +229,46 @@
     blocks[index][field] = e.target.value;
   });
 
+  const LIST_TYPES = new Set(['bullet_list', 'numbered_list']);
+
+  function focusBlockInput(index) {
+    requestAnimationFrame(() => {
+      const item = blocksList.querySelectorAll('.block-item')[index];
+      const input = item?.querySelector('input, textarea, .block-file-picker');
+      if (!input) return;
+      input.focus();
+      if (input.setSelectionRange && typeof input.value === 'string') {
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    });
+  }
+
+  // Enter dentro de una viñeta/numerada crea el siguiente bloque del mismo
+  // tipo automáticamente (como en Notion); Enter con la línea vacía sale de
+  // la lista en vez de crear una viñeta vacía.
+  blocksList.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const input = e.target.closest('[data-field="text"]');
+    if (!input || input.tagName !== 'INPUT') return;
+
+    const index = Number(input.dataset.index);
+    const block = blocks[index];
+    if (!block || !LIST_TYPES.has(block.type)) return;
+
+    e.preventDefault();
+
+    if (!block.text.trim()) {
+      blocks.splice(index, 1);
+      renderBlocksList();
+      focusBlockInput(Math.max(0, index - 1));
+      return;
+    }
+
+    blocks.splice(index + 1, 0, createBlock(block.type));
+    renderBlocksList();
+    focusBlockInput(index + 1);
+  });
+
   // ---------- Agregar bloque ----------
 
   addBlockBtn.addEventListener('click', () => {
