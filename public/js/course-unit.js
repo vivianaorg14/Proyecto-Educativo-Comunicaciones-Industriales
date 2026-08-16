@@ -24,8 +24,9 @@
   const unitDescription = document.getElementById('unitDescription');
   const topicsCountLabel = document.getElementById('topicsCountLabel');
   const topicsList = document.getElementById('topicsList');
-  const quizCard = document.getElementById('quizCard');
-  const quizCardTitle = document.getElementById('quizCardTitle');
+  const quizzesSection = document.getElementById('quizzesSection');
+  const quizzesCountLabel = document.getElementById('quizzesCountLabel');
+  const quizzesList = document.getElementById('quizzesList');
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -65,6 +66,21 @@
     `;
   }
 
+  function renderQuizCard(quiz) {
+    return `
+      <a class="quiz-card" href="/course-quiz.html?unitId=${unitId}&quizId=${quiz.id}&unitIndex=${unitIndex}">
+        <span class="quiz-card-icon" aria-hidden="true">📝</span>
+        <span class="quiz-card-info">
+          <span class="quiz-card-label">${quiz.questions_count} pregunta(s)</span>
+          <span class="quiz-card-title">${escapeHtml(quiz.title)}</span>
+        </span>
+        <svg class="topic-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </a>
+    `;
+  }
+
   try {
     const res = await fetch(`/api/content/units/${unitId}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
@@ -92,10 +108,10 @@
 
     topicsList.innerHTML = data.topics.map(renderTopicRow).join('');
 
-    if (data.quiz) {
-      quizCard.href = `/course-quiz.html?unitId=${unitId}&unitIndex=${unitIndex}`;
-      quizCardTitle.textContent = data.quiz.title;
-      quizCard.style.display = 'flex';
+    if (data.quizzes?.length) {
+      quizzesCountLabel.textContent = `Quizzes — ${data.quizzes.length} en total`;
+      quizzesList.innerHTML = data.quizzes.map(renderQuizCard).join('');
+      quizzesSection.style.display = 'block';
     }
   } catch (err) {
     unitTitle.textContent = 'No se pudo cargar la unidad';

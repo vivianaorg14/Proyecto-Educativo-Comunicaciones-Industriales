@@ -109,20 +109,31 @@ router.get('/units/:id', async (req, res) => {
     })
   );
 
-  const { data: quiz } = await supabaseAdmin
+  const { data: quizzes } = await supabaseAdmin
     .from('quizzes')
     .select('id, title')
     .eq('unit_id', unit.id)
-    .maybeSingle();
+    .order('created_at');
 
-  res.json({ unit, topics: fullTopics, quiz: quiz || null });
+  const quizzesWithCounts = await Promise.all(
+    (quizzes || []).map(async (quiz) => {
+      const { count } = await supabaseAdmin
+        .from('quiz_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('quiz_id', quiz.id);
+      return { id: quiz.id, title: quiz.title, questions_count: count || 0 };
+    })
+  );
+
+  res.json({ unit, topics: fullTopics, quizzes: quizzesWithCounts });
 });
 
-// Quiz de una unidad, listo para responder (sin exponer cuál opción es correcta)
-router.get('/units/:unitId/quiz', async (req, res) => {
+// Un quiz de una unidad, listo para responder (sin exponer cuál opción es correcta)
+router.get('/units/:unitId/quizzes/:quizId', async (req, res) => {
   const { data: quiz, error } = await supabaseAdmin
     .from('quizzes')
     .select('*')
+    .eq('id', req.params.quizId)
     .eq('unit_id', req.params.unitId)
     .maybeSingle();
 
@@ -130,7 +141,7 @@ router.get('/units/:unitId/quiz', async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
   if (!quiz) {
-    return res.json({ quiz: null });
+    return res.status(404).json({ error: 'Quiz no encontrado' });
   }
 
   const { data: questions, error: questionsError } = await supabaseAdmin
@@ -159,7 +170,7 @@ router.get('/units/:unitId/quiz', async (req, res) => {
 
 // Califica el quiz. La corrección se hace acá, del lado del servidor, para
 // que el estudiante nunca reciba cuál opción es la correcta de antemano.
-router.post('/units/:unitId/quiz/submit', async (req, res) => {
+router.post('/units/:unitId/quizzes/:quizId/submit', async (req, res) => {
   const { answers } = req.body;
 
   if (!Array.isArray(answers)) {
@@ -169,6 +180,7 @@ router.post('/units/:unitId/quiz/submit', async (req, res) => {
   const { data: quiz, error: quizError } = await supabaseAdmin
     .from('quizzes')
     .select('id')
+    .eq('id', req.params.quizId)
     .eq('unit_id', req.params.unitId)
     .maybeSingle();
 
@@ -176,7 +188,7 @@ router.post('/units/:unitId/quiz/submit', async (req, res) => {
     return res.status(400).json({ error: quizError.message });
   }
   if (!quiz) {
-    return res.status(404).json({ error: 'Esta unidad no tiene quiz' });
+    return res.status(404).json({ error: 'Quiz no encontrado' });
   }
 
   const { data: questions, error: questionsError } = await supabaseAdmin

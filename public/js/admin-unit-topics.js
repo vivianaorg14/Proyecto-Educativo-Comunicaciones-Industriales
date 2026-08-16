@@ -21,12 +21,16 @@
   }
 
   const API_BASE = `/api/admin/units/${unitId}/topics`;
+  const QUIZ_API_BASE = `/api/admin/units/${unitId}/quizzes`;
 
   const unitTitleHeading = document.getElementById('unitTitle');
   const newTopicBtn = document.getElementById('newTopicBtn');
   const topicsList = document.getElementById('topicsList');
+  const newQuizBtn = document.getElementById('newQuizBtn');
+  const quizzesList = document.getElementById('quizzesList');
 
   newTopicBtn.href = `/admin-topic-editor.html?unitId=${unitId}`;
+  newQuizBtn.href = `/admin-quiz-editor.html?unitId=${unitId}`;
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -117,6 +121,54 @@
     await loadTopics();
   }
 
+  function renderQuizzesList(quizzes) {
+    if (!quizzes.length) {
+      quizzesList.innerHTML = '<p class="empty-state">Todavía no hay quizzes. Crea el primero con "+ Nuevo quiz".</p>';
+      return;
+    }
+
+    quizzesList.innerHTML = quizzes.map((quiz) => `
+      <article class="unit-manage-card" data-id="${quiz.id}">
+        <h3>${escapeHtml(quiz.title)}</h3>
+        <div class="unit-meta"><span>${quiz.questions_count} pregunta(s)</span></div>
+        <div class="unit-manage-actions">
+          <a class="btn btn-solid" href="/admin-quiz-editor.html?unitId=${unitId}&quizId=${quiz.id}">Editar</a>
+          <button type="button" class="btn btn-ghost" data-action="delete">Eliminar</button>
+        </div>
+      </article>
+    `).join('');
+
+    quizzesList.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+      const quizId = btn.closest('.unit-manage-card').dataset.id;
+      btn.addEventListener('click', () => deleteQuiz(quizId));
+    });
+  }
+
+  async function loadQuizzes() {
+    const res = await fetch(QUIZ_API_BASE, { headers: await authHeaders() });
+    const data = await res.json();
+    if (!res.ok) {
+      quizzesList.innerHTML = `<p class="empty-state">${escapeHtml(data.error || 'No se pudieron cargar los quizzes')}</p>`;
+      return;
+    }
+    renderQuizzesList(data.quizzes);
+  }
+
+  async function deleteQuiz(quizId) {
+    if (!confirm('¿Eliminar este quiz y todas sus preguntas? Esta acción no se puede deshacer.')) return;
+    const res = await fetch(`${QUIZ_API_BASE}/${quizId}`, {
+      method: 'DELETE',
+      headers: await authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'No se pudo eliminar el quiz');
+      return;
+    }
+    await loadQuizzes();
+  }
+
   await loadUnitHeading();
   await loadTopics();
+  await loadQuizzes();
 })();

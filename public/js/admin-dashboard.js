@@ -110,7 +110,7 @@
           ${topicsHtml}
           <div class="admin-unit-topics-actions">
             <a class="admin-add-topic" href="/admin-topic-editor.html?unitId=${unit.id}">+ Agregar tema</a>
-            <a class="admin-add-topic" href="/admin-quiz-editor.html?unitId=${unit.id}">📝 Quiz de la unidad</a>
+            <a class="admin-add-topic" href="/admin-unit-topics.html?unitId=${unit.id}">📝 Ver quizzes de la unidad</a>
           </div>
         </div>
       </article>

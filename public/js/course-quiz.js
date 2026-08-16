@@ -11,9 +11,10 @@
 
   const params = new URLSearchParams(window.location.search);
   const unitId = params.get('unitId');
+  const quizId = params.get('quizId');
   const unitIndex = params.get('unitIndex') || '1';
 
-  if (!unitId) {
+  if (!unitId || !quizId) {
     window.location.href = '/course.html';
     return;
   }
@@ -123,7 +124,7 @@
     submitQuizBtn.textContent = 'Enviando...';
 
     try {
-      const res = await fetch(`/api/content/units/${unitId}/quiz/submit`, {
+      const res = await fetch(`/api/content/units/${unitId}/quizzes/${quizId}/submit`, {
         method: 'POST',
         headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
         body: JSON.stringify({ answers }),
@@ -144,7 +145,7 @@
   try {
     const [unitRes, quizRes] = await Promise.all([
       fetch(`/api/content/units/${unitId}`, { headers: await authHeaders() }),
-      fetch(`/api/content/units/${unitId}/quiz`, { headers: await authHeaders() }),
+      fetch(`/api/content/units/${unitId}/quizzes/${quizId}`, { headers: await authHeaders() }),
     ]);
     const unitData = await unitRes.json();
     const quizData = await quizRes.json();
@@ -155,12 +156,6 @@
 
     if (!quizRes.ok) {
       throw new Error(quizData.error || 'No se pudo cargar el quiz');
-    }
-
-    if (!quizData.quiz) {
-      quizTitle.textContent = 'Esta unidad no tiene quiz';
-      questionsContainer.innerHTML = '<p class="empty-state">Todavía no se ha creado un quiz para esta unidad.</p>';
-      return;
     }
 
     quizEyebrow.textContent = `Unidad ${String(unitIndex).padStart(2, '0')}`;

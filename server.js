@@ -28,7 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/units', unitsRoutes);
 app.use('/api/admin/units/:unitId/topics', unitTopicsRoutes);
-app.use('/api/admin/units/:unitId/quiz', quizzesRoutes);
+app.use('/api/admin/units/:unitId/quizzes', quizzesRoutes);
 app.use('/api/content', contentRoutes);
 
 // Config pública para que el frontend pueda hablar directo con Supabase (necesario para el login con Google)

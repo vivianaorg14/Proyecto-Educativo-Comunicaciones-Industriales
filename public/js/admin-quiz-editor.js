@@ -14,16 +14,20 @@
     return;
   }
 
-  const unitId = new URLSearchParams(window.location.search).get('unitId');
+  const params = new URLSearchParams(window.location.search);
+  const unitId = params.get('unitId');
+  const quizId = params.get('quizId'); // null => crear quiz nuevo
+
   if (!unitId) {
     window.location.href = '/admin-units.html';
     return;
   }
 
-  const API_BASE = `/api/admin/units/${unitId}/quiz`;
+  const API_BASE = `/api/admin/units/${unitId}/quizzes`;
 
   const backLink = document.getElementById('backLink');
   const unitTitleCrumb = document.getElementById('unitTitleCrumb');
+  const quizTitleCrumb = document.getElementById('quizTitleCrumb');
   const quizTitleInput = document.getElementById('quizTitleInput');
   const questionsList = document.getElementById('questionsList');
   const addQuestionBtn = document.getElementById('addQuestionBtn');
@@ -31,10 +35,9 @@
   const deleteQuizBtn = document.getElementById('deleteQuizBtn');
   const formMessage = document.getElementById('formMessage');
 
-  backLink.href = `/admin-units.html`;
+  backLink.href = `/admin-unit-topics.html?unitId=${unitId}`;
 
   let questions = [];
-  let quizExists = false;
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -162,7 +165,7 @@
   }
 
   async function loadExisting() {
-    const res = await fetch(API_BASE, { headers: await authHeaders() });
+    const res = await fetch(`${API_BASE}/${quizId}`, { headers: await authHeaders() });
     const data = await res.json();
 
     if (!res.ok) {
@@ -172,17 +175,13 @@
       return;
     }
 
-    if (data.quiz) {
-      quizExists = true;
-      quizTitleInput.value = data.quiz.title;
-      questions = data.quiz.questions.map((q) => ({
-        text: q.text,
-        options: q.options.map((o) => ({ text: o.text, is_correct: o.is_correct })),
-      }));
-      deleteQuizBtn.style.display = 'inline-flex';
-    } else {
-      questions = [createQuestion()];
-    }
+    quizTitleInput.value = data.quiz.title;
+    quizTitleCrumb.textContent = data.quiz.title;
+    deleteQuizBtn.style.display = 'inline-flex';
+    questions = data.quiz.questions.map((q) => ({
+      text: q.text,
+      options: q.options.map((o) => ({ text: o.text, is_correct: o.is_correct })),
+    }));
 
     renderQuestions();
   }
@@ -214,12 +213,15 @@
       }
     }
 
+    const url = quizId ? `${API_BASE}/${quizId}` : API_BASE;
+    const method = quizId ? 'PUT' : 'POST';
+
     saveBtn.disabled = true;
     saveBtn.textContent = 'Guardando...';
 
     try {
-      const res = await fetch(API_BASE, {
-        method: 'PUT',
+      const res = await fetch(url, {
+        method,
         headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, questions }),
       });
@@ -227,31 +229,33 @@
       if (!res.ok) {
         throw new Error(data.error || 'Ocurrió un error al guardar el quiz');
       }
-      showMessage(data.message, 'success');
-      quizExists = true;
-      deleteQuizBtn.style.display = 'inline-flex';
+      window.location.href = `/admin-unit-topics.html?unitId=${unitId}`;
     } catch (err) {
       showMessage(err.message, 'error');
-    } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = 'Guardar';
     }
   });
 
   deleteQuizBtn.addEventListener('click', async () => {
-    if (!quizExists) return;
+    if (!quizId) return;
     if (!confirm('¿Eliminar este quiz por completo? Esta acción no se puede deshacer.')) return;
 
-    const res = await fetch(API_BASE, { method: 'DELETE', headers: await authHeaders() });
+    const res = await fetch(`${API_BASE}/${quizId}`, { method: 'DELETE', headers: await authHeaders() });
     const data = await res.json();
     if (!res.ok) {
       alert(data.error || 'No se pudo eliminar el quiz');
       return;
     }
 
-    window.location.href = '/admin-units.html';
+    window.location.href = `/admin-unit-topics.html?unitId=${unitId}`;
   });
 
   await loadUnitCrumb();
-  await loadExisting();
+  if (quizId) {
+    await loadExisting();
+  } else {
+    questions = [createQuestion()];
+    renderQuestions();
+  }
 })();

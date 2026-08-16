@@ -6,15 +6,14 @@ const requireAdmin = require('../middleware/requireAdmin');
 // Todas las rutas de este archivo requieren rol de administrador
 router.use(requireAdmin);
 
-async function getQuizWithQuestions(unitId) {
+async function getQuizWithQuestions(quizId) {
   const { data: quiz, error } = await supabaseAdmin
     .from('quizzes')
     .select('*')
-    .eq('unit_id', unitId)
-    .maybeSingle();
+    .eq('id', quizId)
+    .single();
 
-  if (error) throw new Error(error.message);
-  if (!quiz) return null;
+  if (error || !quiz) return null;
 
   const { data: questions, error: questionsError } = await supabaseAdmin
     .from('quiz_questions')
@@ -62,18 +61,76 @@ function validateQuestions(questions) {
   });
 }
 
-// Obtener el quiz de la unidad (o null si no tiene)
+async function replaceQuestions(quizId, questions) {
+  const { error: deleteError } = await supabaseAdmin.from('quiz_questions').delete().eq('quiz_id', quizId);
+  if (deleteError) throw new Error(deleteError.message);
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+
+    const { data: question, error: qError } = await supabaseAdmin
+      .from('quiz_questions')
+      .insert({ quiz_id: quizId, text: q.text.trim(), position: i })
+      .select()
+      .single();
+
+    if (qError) throw new Error(qError.message);
+
+    const optionRows = q.options.map((o, j) => ({
+      question_id: question.id,
+      text: o.text.trim(),
+      is_correct: !!o.is_correct,
+      position: j,
+    }));
+
+    const { error: oError } = await supabaseAdmin.from('quiz_options').insert(optionRows);
+    if (oError) throw new Error(oError.message);
+  }
+}
+
+// ---------- Rutas ----------
+// Montadas en /api/admin/units/:unitId/quizzes
+
+// Listar los quizzes de una unidad
 router.get('/', async (req, res) => {
+  const { data: quizzes, error } = await supabaseAdmin
+    .from('quizzes')
+    .select('*')
+    .eq('unit_id', req.params.unitId)
+    .order('created_at');
+
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  const withCounts = await Promise.all(
+    quizzes.map(async (quiz) => {
+      const { count } = await supabaseAdmin
+        .from('quiz_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('quiz_id', quiz.id);
+      return { id: quiz.id, title: quiz.title, questions_count: count || 0 };
+    })
+  );
+
+  res.json({ quizzes: withCounts });
+});
+
+// Obtener un quiz (con preguntas y opciones, para editarlo)
+router.get('/:quizId', async (req, res) => {
   try {
-    const quiz = await getQuizWithQuestions(req.params.unitId);
+    const quiz = await getQuizWithQuestions(req.params.quizId);
+    if (!quiz || quiz.unit_id !== req.params.unitId) {
+      return res.status(404).json({ error: 'Quiz no encontrado' });
+    }
     res.json({ quiz });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// Crea o reemplaza por completo el quiz de la unidad (título + preguntas + opciones)
-router.put('/', async (req, res) => {
+// Crear un quiz nuevo en la unidad
+router.post('/', async (req, res) => {
   const { unitId } = req.params;
   const { title, questions } = req.body;
 
@@ -87,73 +144,60 @@ router.put('/', async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  const { data: existingQuiz, error: fetchError } = await supabaseAdmin
+  const { data: quiz, error: insertError } = await supabaseAdmin
     .from('quizzes')
-    .select('id')
-    .eq('unit_id', unitId)
-    .maybeSingle();
+    .insert({ unit_id: unitId, title: title.trim() })
+    .select()
+    .single();
 
-  if (fetchError) {
-    return res.status(400).json({ error: fetchError.message });
-  }
-
-  let quizId = existingQuiz?.id;
-
-  if (quizId) {
-    const { error: updateError } = await supabaseAdmin.from('quizzes').update({ title: title.trim() }).eq('id', quizId);
-    if (updateError) return res.status(400).json({ error: updateError.message });
-
-    // Las preguntas viejas se reemplazan por completo; el cascade en
-    // quiz_options se encarga de borrar sus opciones.
-    const { error: deleteError } = await supabaseAdmin.from('quiz_questions').delete().eq('quiz_id', quizId);
-    if (deleteError) return res.status(400).json({ error: deleteError.message });
-  } else {
-    const { data: newQuiz, error: insertError } = await supabaseAdmin
-      .from('quizzes')
-      .insert({ unit_id: unitId, title: title.trim() })
-      .select()
-      .single();
-    if (insertError) return res.status(400).json({ error: insertError.message });
-    quizId = newQuiz.id;
-  }
-
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-
-    const { data: question, error: qError } = await supabaseAdmin
-      .from('quiz_questions')
-      .insert({ quiz_id: quizId, text: q.text.trim(), position: i })
-      .select()
-      .single();
-
-    if (qError) {
-      return res.status(400).json({ error: qError.message });
-    }
-
-    const optionRows = q.options.map((o, j) => ({
-      question_id: question.id,
-      text: o.text.trim(),
-      is_correct: !!o.is_correct,
-      position: j,
-    }));
-
-    const { error: oError } = await supabaseAdmin.from('quiz_options').insert(optionRows);
-    if (oError) {
-      return res.status(400).json({ error: oError.message });
-    }
+  if (insertError) {
+    return res.status(400).json({ error: insertError.message });
   }
 
   try {
-    const fullQuiz = await getQuizWithQuestions(unitId);
-    res.json({ message: 'Quiz guardado', quiz: fullQuiz });
+    await replaceQuestions(quiz.id, questions);
+    const fullQuiz = await getQuizWithQuestions(quiz.id);
+    res.status(201).json({ message: 'Quiz creado', quiz: fullQuiz });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// Elimina el quiz de la unidad
-router.delete('/', async (req, res) => {
-  const { error } = await supabaseAdmin.from('quizzes').delete().eq('unit_id', req.params.unitId);
+// Editar un quiz (reemplaza título y todas sus preguntas/opciones)
+router.put('/:quizId', async (req, res) => {
+  const { quizId } = req.params;
+  const { title, questions } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'El título del quiz es obligatorio' });
+  }
+
+  try {
+    validateQuestions(questions);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  const { error: updateError } = await supabaseAdmin.from('quizzes').update({ title: title.trim() }).eq('id', quizId);
+  if (updateError) {
+    return res.status(400).json({ error: updateError.message });
+  }
+
+  try {
+    await replaceQuestions(quizId, questions);
+    const fullQuiz = await getQuizWithQuestions(quizId);
+    if (!fullQuiz) {
+      return res.status(404).json({ error: 'Quiz no encontrado' });
+    }
+    res.json({ message: 'Quiz actualizado', quiz: fullQuiz });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Eliminar un quiz
+router.delete('/:quizId', async (req, res) => {
+  const { error } = await supabaseAdmin.from('quizzes').delete().eq('id', req.params.quizId);
   if (error) {
     return res.status(400).json({ error: error.message });
   }
